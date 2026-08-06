@@ -5,20 +5,27 @@
   "private": true,
   "main": "electron-main.js",
   "scripts": {
-    "test": "node --test",
+    "test": "node --test test/*.test.mjs --test-force-exit",
     "app": "electron .",
     "dist": "electron-builder --win portable"
   },
   "devDependencies": {
-    "jsdom": "^24.1.0",
-    "electron": "^31.0.0",
-    "electron-builder": "^24.13.3"
+    "electron": "^43.2.0",
+    "electron-builder": "^24.13.3",
+    "jsdom": "^24.1.0"
   },
   "build": {
     "appId": "com.eduino.ailab",
     "productName": "Eduino AI Lab",
-    "files": ["index.html", "electron-main.js"],
-    "directories": { "output": "dist" },
-    "win": { "target": "portable" }
+    "files": [
+      "index.html",
+      "electron-main.js"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "portable"
+    }
   }
 }
