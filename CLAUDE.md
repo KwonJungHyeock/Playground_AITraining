@@ -24,7 +24,7 @@
 | `studio.html` | 라우터 스텁 → A/C로 이동 · **삭제 금지** | 공통 |
 | `explore.html` / `create.html` | 라우터 스텁 + 해시 | 공통 |
 
-- **절대 수정 금지**: `index.html`, `platform/`, `stages/*.html`, `stages/session.js`·`board.js`·`cert.js`·`admin.js`·`icons.js`
+- **절대 수정 금지**: `index.html`, `platform/`, `stages/apps/*.html`, `stages/core/session.js`·`stages/submission/board.js`·`stages/admin/cert.js`·`stages/admin/admin.js`·`stages/core/ui/icons.js`
 - **URL 전부 유지** (외부 링크·북마크)
 
 ### 고칠 때 어디를 보는가

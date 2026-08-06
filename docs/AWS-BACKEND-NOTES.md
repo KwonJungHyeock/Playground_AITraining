@@ -8,7 +8,7 @@
 
 ## 1. 현재 클라이언트 저장 구조 (localStorage / sessionStorage)
 
-모든 상태는 `stages/session.js`, `stages/submit.js`, `stages/board.js` 가 직접 읽고 씀.
+모든 상태는 `stages/core/session.js`, `stages/submission/submit.core.js`(+`data/submit.store.js`), `stages/submission/board.js` 가 직접 읽고 씀.
 
 | 키 | 저장소 | 형태 | 설명 |
 |---|---|---|---|
@@ -89,7 +89,7 @@ Submission { submissionId(PK), classId(FK,index), missionId(FK), studentId,
 ---
 
 ## 5. 클라이언트 ↔ 서버 매핑 (전환 시 교체 지점)
-`stages/session.js`의 메서드만 **얇은 API 클라이언트로 교체**하면 화면 코드는 거의 그대로 재사용 가능.
+`stages/core/session.js`의 메서드만 **얇은 API 클라이언트로 교체**하면 화면 코드는 거의 그대로 재사용 가능.
 
 | 현재 함수 | 교체 대상 |
 |---|---|
