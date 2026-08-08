@@ -32,25 +32,70 @@ const els = {
   inferToggle: $('infer-toggle'), inferMeta: $('infer-meta'),
 };
 
+/* 상태 표시 — 구 뱃지(#status)와 콘솔 HUD 칩(#vStatus) 양쪽에 반영.
+   HUD 칩은 하드코딩 'READY' 였으므로 실제 상태(로딩·학습·실패)를 보여주도록 연결한다. */
+const STATUS_LABEL = {
+  busy: '● 준비 중…', ready: '● 준비 완료', training: '● 학습 중…', fail: '● 오류',
+};
 function setStatus(text, kind) {
-  if (!els.status) return; // 상단 상태 뱃지는 제거됨 (각 패널이 자체 STATUS 표시)
+  const chip = $('vStatus');
+  if (chip) {
+    chip.textContent = STATUS_LABEL[kind] || ('● ' + (text || ''));
+    chip.dataset.state = kind || '';
+  }
+  if (!els.status) return; // 구 뱃지는 없을 수 있음
   els.statusText.textContent = text;
   els.status.className = 'status ' + (kind || '');
 }
 
+/* 모델 준비 안내 배너 (학생에게 로딩/실패를 명확히 알림) */
+function setModelNotice(state, msg) {
+  let el = $('model-notice');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'model-notice';
+    const host = $('lab-scenarios') || $('step-nav');
+    if (host && host.parentNode) host.parentNode.insertBefore(el, host);
+    else document.querySelector('.content')?.prepend(el);
+  }
+  if (!state) { el.style.display = 'none'; return; }
+  el.style.display = '';
+  el.className = 'model-notice ' + state;
+  el.innerHTML = state === 'loading'
+    ? '<span class="mn-spin"></span> AI 모델을 준비하고 있어요 <b>(약 13MB)</b> — 잠시만 기다려 주세요. 준비가 끝나면 촬영할 수 있어요.'
+    : '⚠️ <b>AI 모델을 불러오지 못했어요.</b> ' + (msg || '네트워크 연결을 확인해 주세요.') +
+      ' <button type="button" id="model-retry" class="mn-btn">다시 시도</button>';
+}
+
 
 /* ── 모델 로드 ───────────────────────────────────────── */
-async function init() {
+async function loadModel() {
+  setStatus('MODEL LOADING', 'busy');
+  setModelNotice('loading');
   try {
-    setStatus('MODEL LOADING', 'busy');
-    state.mobilenet = await mobilenet.load({ version: 2, alpha: 1.0, modelUrl: 'https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json' });
+    /* 느린/막힌 네트워크에서 무한 대기하지 않도록 타임아웃(45초)을 건다 */
+    state.mobilenet = await Promise.race([
+      mobilenet.load({ version: 2, alpha: 1.0, modelUrl: 'https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json' }),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 45000)),
+    ]);
     setStatus('READY', 'ready');
+    setModelNotice(null);
   } catch (e) {
     console.error(e);
-    setStatus('LOAD FAILED — CHECK NETWORK', '');
+    state.mobilenet = null;
+    setStatus('LOAD FAILED', 'fail');
+    setModelNotice('fail');
+    const btn = $('model-retry');
+    if (btn) btn.onclick = () => loadModel();
   }
+  renderClasses(); refresh();   // 모델 상태에 따라 촬영 버튼 활성/비활성 재적용
+}
+
+async function init() {
+  /* 클래스를 먼저 그린다 — 13MB 모델을 기다리는 동안 화면이 비어 보이지 않도록 */
   addClass('클래스 1');
   addClass('클래스 2');
+  await loadModel();
 }
 
 /* ── 클래스 관리 ─────────────────────────────────────── */
@@ -148,7 +193,7 @@ function renderClasses() {
     onSelect: selectClass, onRemove: removeClass,
     onRename: () => { renderBars(); updateCapTarget(); },
     onThumbs: openGallery,
-    capture: true, capEnabled: () => !!state.stream,
+    capture: true, capEnabled: () => !!state.stream && !!state.mobilenet,
   });
   updateCapTarget();
 }
@@ -218,7 +263,9 @@ function bumpClassCard(c) {
 }
 
 function setCapEnabled(on) {
-  els.classList.querySelectorAll('.cap-btn').forEach(b => b.disabled = !on);
+  /* 카메라가 켜져 있어도 AI 모델이 준비되지 않았으면 촬영 불가(무반응 방지) */
+  const usable = on && !!state.mobilenet;
+  els.classList.querySelectorAll('.cap-btn').forEach(b => b.disabled = !usable);
 }
 
 /* ── 학습 ───────────────────────────────────────────── */

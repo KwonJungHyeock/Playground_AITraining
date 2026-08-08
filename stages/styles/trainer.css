@@ -920,3 +920,20 @@
   .theorybtn-x [data-ic] { font-size:15px; color:var(--accent-ink); }
   #fi-theory { display:none; }
   .feature-info.show-theory #fi-theory { display:grid; }
+
+/* ── 모델 준비 안내 배너 (로딩·실패 상태를 학생에게 명확히) ── */
+.model-notice{display:flex;align-items:center;gap:10px;font-size:13.5px;line-height:1.5;
+  border-radius:12px;padding:12px 15px;margin:0 0 14px;}
+.model-notice.loading{color:#ffd36a;background:rgba(255,180,60,.10);box-shadow:inset 0 0 0 1px rgba(255,180,60,.25);}
+.model-notice.fail{color:#ff8472;background:rgba(240,71,58,.10);box-shadow:inset 0 0 0 1px rgba(240,71,58,.30);}
+.model-notice b{color:inherit;}
+.mn-spin{width:14px;height:14px;flex:none;border-radius:50%;border:2px solid rgba(255,211,106,.3);
+  border-top-color:#ffd36a;animation:mnspin .8s linear infinite;}
+@keyframes mnspin{to{transform:rotate(360deg)}}
+.mn-btn{margin-left:6px;font-size:12.5px;font-weight:700;color:#fff;background:rgba(240,71,58,.85);
+  border:0;border-radius:9px;padding:7px 13px;cursor:pointer;font-family:inherit;}
+.mn-btn:hover{filter:brightness(1.1);}
+#vStatus[data-state="busy"]{color:#ffd36a;}
+#vStatus[data-state="ready"]{color:#42e29b;}
+#vStatus[data-state="training"]{color:#6aa6ff;}
+#vStatus[data-state="fail"]{color:#ff8472;}
