@@ -5,6 +5,8 @@
 
 const PALETTE = ['#0066ff', '#d97706', '#06b6d4', '#059669', '#e11d48', '#7c3aed', '#db2777', '#0891b2'];
 const MAX_CLASSES = 4;
+/* 클래스당 촬영 상한 — 롱프레스(120ms 간격)로 수백 장이 쌓여 브라우저가 느려지는 것을 방지 */
+const MAX_SAMPLES = 100;
 
 const state = {
   classes: [],
@@ -138,7 +140,9 @@ function renderClassList(cfg) {
     const input = document.createElement('input');
     input.className = 'class-name'; input.value = c.name;
     input.onclick = (e) => { e.stopPropagation(); cfg.onSelect(c.id); };
-    input.oninput = () => { c.name = input.value || c.name; cfg.onRename(); };
+    input.oninput = () => { if (input.value.trim()) { c.name = input.value; cfg.onRename(); } };
+    /* 빈칸으로 두고 나가면 화면과 실제 이름이 어긋나므로 이전 이름을 되돌려 표시 */
+    input.onblur = () => { if (!input.value.trim()) { input.value = c.name; cfg.onRename(); } };
     row.appendChild(input);
 
     const count = document.createElement('span');
@@ -228,9 +232,29 @@ async function toggleCam() {
   }
 }
 
+/* 촬영 상한 도달 안내 (같은 메시지가 연달아 뜨지 않도록 쓰로틀) */
+let limitToastAt = 0;
+function notifySampleLimit(sel) {
+  const now = Date.now();
+  if (now - limitToastAt < 2500) return;
+  limitToastAt = now;
+  let el = $('sample-limit-toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'sample-limit-toast';
+    el.className = 'sample-toast';
+    document.body.appendChild(el);
+  }
+  el.textContent = `'${sel.name}' 사진이 ${MAX_SAMPLES}장을 넘었어요. 충분해요! 다른 클래스도 찍어보세요.`;
+  el.classList.add('on');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('on'), 2200);
+}
+
 function captureSample() {
   const sel = state.classes.find(c => c.id === state.selectedId);
   if (!sel || !state.mobilenet || !state.stream) return;
+  if (sel.embeddings.length >= MAX_SAMPLES) { notifySampleLimit(sel); return; }
   const emb = tf.tidy(() => state.mobilenet.infer(els.video, true).flatten());
   sel.embeddings.push(Array.from(emb.dataSync()));
   emb.dispose();
@@ -333,7 +357,7 @@ async function train() {
       chartBox: $('train-chart-box'), confBox: $('confusion-box'), trainHint: els.trainHint,
     },
     hiddenUnits: 100, defaultEpochs: 30,
-    onStart: () => { setStatus('TRAINING', 'busy'); stopInfer(); },
+    onStart: () => { setStatus('TRAINING', 'training'); stopInfer(); },
     disposeHead: () => { if (state.head) state.head.dispose(); },
     setHead: (h) => { state.head = h; },
     resetChart, pushPoint: pushChartPoint, buildConf: buildConfusionMatrix,

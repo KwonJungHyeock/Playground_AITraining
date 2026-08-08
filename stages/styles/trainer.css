@@ -937,3 +937,9 @@
 #vStatus[data-state="ready"]{color:#42e29b;}
 #vStatus[data-state="training"]{color:#6aa6ff;}
 #vStatus[data-state="fail"]{color:#ff8472;}
+
+/* ── 촬영 상한 안내 토스트 ── */
+.sample-toast{position:fixed;left:50%;bottom:32px;transform:translateX(-50%) translateY(18px);z-index:150;
+  font-size:13.5px;font-weight:700;color:#1a0a08;background:var(--amber,#ffd36a);border-radius:12px;
+  padding:11px 18px;box-shadow:0 14px 40px rgba(0,0,0,.5);opacity:0;transition:.25s;pointer-events:none;}
+.sample-toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
