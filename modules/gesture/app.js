@@ -4,8 +4,35 @@ const CONNECTIONS = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[0,9],[9,10
   [0,13],[13,14],[14,15],[15,16],[0,17],[17,18],[18,19],[19,20],[5,9],[9,13],[13,17]];
 const DONUT_C = 251.3;
 let model = null;
+let playSeen = false;             // 손을 한 번이라도 인식했는지 — 실습 ① 완료 신호
 
-function setStatus(t, c) { const s = $('status'); s.textContent = t; s.className = 'status' + (c ? ' ' + c : ''); }
+function setStatus(t, c) {
+  const s = $('status');
+  if (s) { s.textContent = t; s.className = 'status' + (c ? ' ' + c : ''); }
+  document.querySelectorAll('.stage').forEach(stage => {
+    if (stage.offsetParent !== null) {
+      let loader = stage.querySelector('.stage-loader');
+      if (!loader) {
+        loader = document.createElement('div');
+        loader.className = 'stage-loader';
+        loader.style.cssText = 'position:absolute; inset:0; background:#0d1016; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; font-size:15px; font-weight:700; z-index:20;';
+        stage.appendChild(loader);
+      }
+      if (c === 'busy') {
+        loader.style.display = 'flex';
+        loader.innerHTML = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite; margin-bottom:12px; color:var(--primary);"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>` + t;
+        if (!document.getElementById('spin-anim')) {
+          const style = document.createElement('style');
+          style.id = 'spin-anim';
+          style.textContent = '@keyframes spin { 100% { transform: rotate(360deg); } }';
+          document.head.appendChild(style);
+        }
+      } else {
+        loader.style.display = 'none';
+      }
+    }
+  });
+}
 
 /* ── 손 특징(손목 기준 정규화 → 42차원) ── */
 function handFeature(kp) {
@@ -100,6 +127,7 @@ async function playLoop() {
     const st = [r.fingers.thumb, ...r.fingers.four];
     fingerEls.forEach((el, i) => el.classList.toggle('up', !!st[i]));
     setPlayDonut(r.conf); $('play-conf-label').textContent = '손 인식됨';
+    if (!playSeen) { playSeen = true; window.CourseDashboard && CourseDashboard.markDone('play'); }
   } else {
     $('rps-name').textContent = '손이 안 보여요'; $('rps-hint').textContent = '손을 화면 안에 비춰주세요';
     fingerEls.forEach(el => el.classList.remove('up')); setPlayDonut(0); $('play-conf-label').textContent = '대기 중';
@@ -160,7 +188,7 @@ function renderClasses() {
         <button class="cls-del" data-del="${c.id}" title="삭제">×</button>
       </div>
       <div class="cls-actions">
-        <button class="cap-btn ${recording === c.id ? 'rec' : ''}" data-collect="${c.id}" ${train.stream ? '' : 'disabled'}><span class="ci" data-ic="camera"></span><span>촬영</span><span class="cap-count" data-capcount="${c.id}">${c.samples.length}</span></button>
+        <button class="cap-btn ${recording === c.id ? 'rec' : ''}" data-collect="${c.id}" ${train.stream ? '' : 'disabled'}><span class="ci" data-ic="camera" style="color:inherit;"></span><span>촬영</span><span class="cap-count" data-capcount="${c.id}">${c.samples.length}</span></button>
         <button class="clear" data-clear="${c.id}">비우기</button>
       </div>
       <div class="samp-bar"><i data-fill="${c.id}" style="width:${Math.min(100, c.samples.length * 2.5)}%"></i></div>
@@ -197,6 +225,9 @@ function setStep(n) {
     b.classList.toggle('active', w === n);
     b.classList.toggle('done', w < n);
   });
+  const learnBox = document.querySelector('.camera-card .learn.fill');
+  if (learnBox) learnBox.style.display = n === 1 ? '' : 'none';
+
   if (n === 3 && head && train.stream && !inferring) { inferring = true; $('btn-infer').textContent = '추론 중지'; setStatus('추론 중 · LIVE', 'live'); }
   else if (n === 3) showIdle();
 }
@@ -275,9 +306,24 @@ $('btn-train').onclick = async () => {
   inferring = false; $('btn-infer').textContent = '추론 시작';
   setStatus('학습 중…', 'busy'); $('btn-train').disabled = true; $('btn-infer').disabled = true;
 
-  const xsArr = [], ysArr = [];
-  usable.forEach((c, idx) => c.samples.forEach(s => { if (s.length !== 42 || s.some(v => !isFinite(v))) return; xsArr.push(s); const oh = new Array(usable.length).fill(0); oh[idx] = 1; ysArr.push(oh); }));
+  /* 제스처마다 일부를 학습에서 빼 둔다(홀드아웃).
+     [3. 심화]의 커트라인 조절은 "처음 보는 손에서 얼마나 흔들리나"를 재는 화면인데,
+     학습에 쓴 데이터로 재면 확신도가 전부 높게 나와 커트라인을 내려도 오인이 생기지 않는다.
+     그러면 슬라이더가 대부분 구간에서 아무 일도 하지 않는 죽은 손잡이가 된다. */
+  const HOLDOUT_RATIO = 0.25, MIN_TRAIN_PER_CLASS = 6;
+  const xsArr = [], ysArr = [], holdRows = [];
+  usable.forEach((c, idx) => {
+    const valid = c.samples.filter(s => s.length === 42 && s.every(v => isFinite(v)));
+    const pool = valid.slice();
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = pool[i]; pool[i] = pool[j]; pool[j] = t; }
+    /* 학습 쪽이 MIN_TRAIN_PER_CLASS 밑으로 내려가지 않는 선에서만 뗀다 */
+    const nHold = Math.max(0, Math.min(Math.round(valid.length * HOLDOUT_RATIO), pool.length - MIN_TRAIN_PER_CLASS));
+    pool.slice(0, nHold).forEach(s => holdRows.push({ truth: idx, feat: s }));
+    pool.slice(nHold).forEach(s => { xsArr.push(s); const oh = new Array(usable.length).fill(0); oh[idx] = 1; ysArr.push(oh); });
+  });
   if (xsArr.length < 8) { setStatus('샘플 부족', 'busy'); $('btn-train').disabled = false; return; }
+  /* 뗀 게 너무 적으면 통계가 무의미하니 아예 넘기지 않는다 — advanced.js 가 알아서 되돌아간다. */
+  window.gestureHoldout = holdRows.length >= 4 ? { names: usable.map(c => c.name), rows: holdRows } : null;
   const xs = tf.tensor2d(xsArr), ys = tf.tensor2d(ysArr);
 
   if (head) head.dispose();
@@ -302,6 +348,7 @@ $('btn-train').onclick = async () => {
   $('btn-train').disabled = false; $('btn-infer').disabled = false;
   $('train-hint').textContent = '학습 완료! 자동으로 ③단계로 이동합니다.';
   setStatus('학습 완료 · READY', 'ready');
+  window.CourseDashboard && CourseDashboard.markDone('train');
   setStep(3); // 학습 끝나면 바로 사용해보기로
 };
 function buildBars(names) {
@@ -325,12 +372,20 @@ document.querySelectorAll('.step').forEach(btn => {
     $('panel-play').style.display = s === 'play' ? 'grid' : 'none';
     $('panel-train').style.display = s === 'train' ? 'block' : 'none';
     const pd = $('panel-demo'); if (pd) pd.hidden = s !== 'demo';
+    if (s === 'demo' && typeof window.gestureDemoEnter === 'function') window.gestureDemoEnter();
     if (s === 'play') { recording = null; train.stop(); inferring = false; $('rec-dot').classList.remove('on'); $('train-cam').textContent = '카메라 켜기'; $('cam-state').textContent = '대기'; $('cam-state').classList.remove('on'); gestureSetCapEnabled(false); }
     else { play.stop(); $('play-cam').textContent = '카메라 켜기'; }
     setStatus('대기 중');
   };
 });
 
-addClass('주먹'); addClass('손바닥');
+/* 심화 탭의 가위바위보 대결이 클래스 3개를 순서대로 가위·바위·보에 잇는다. */
+addClass('가위'); addClass('바위'); addClass('보');
 setStatus('대기 중'); showIdle();
 if (!window.isSecureContext) { const b = $('banner'); b.classList.add('on'); b.innerHTML = EduinoIcons.svg('alert') + ' 카메라는 <b>localhost</b> 또는 <b>https</b> 에서만 켜집니다. 배포된 https 주소로 접속해 주세요.'; }
+/* 실습 단계를 떠날 때 켜 둔 카메라를 끈다. 등록한 동작과 수집한 샘플은 건드리지 않는다. */
+(window.CoursePracticeLeave = window.CoursePracticeLeave || []).push(() => {
+  if (play.stream) { play.stop(); $('play-cam').textContent = '카메라 켜기'; }
+  if (train.stream) trainCamStop();
+  setStatus('대기 중');
+});

@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="../shared/components.css" />
   <link rel="stylesheet" href="./style.css" />
   <link rel="stylesheet" href="../shared/course-dashboard.css" />
+  <link rel="stylesheet" href="/shared/access.css" />
 </head>
 
 <body>
@@ -40,7 +41,7 @@
       <div class="cintro">
         <span class="eyebrow">제스처 · 동작 AI 코스</span>
         <h1>손동작으로 배우는 AI</h1>
-        <p>카메라가 손의 <b>관절 21개</b>를 추적해요. 가위바위보로 원리를 보고(초급), <b>내 제스처를 직접 학습</b>시켜 봅니다(중급).</p>
+        <p>카메라가 손의 <b>관절 21개</b>를 추적해요. 가위바위보로 원리를 보고(초급), <b>내 제스처를 직접 학습</b>시켜 보고(중급), 그 모델로 <b>직접 가위바위보 대결</b>을 하며 규칙 기반과 비교합니다(심화).</p>
       </div>
 
       <div class="steps">
@@ -54,7 +55,7 @@
         </button>
         <button class="step" data-step="demo">
           <div class="n">3</div>
-          <div class="t"><b>내 제스처로 도구 만들기</b><span>심화 · 학습한 동작을 컴퓨터 기능에 연결</span></div>
+          <div class="t"><b>심화 · 응용</b><span>학습한 모델로 가위바위보 대결</span></div>
         </button>
       </div>
 
@@ -79,7 +80,7 @@
             <div class="rps-big">
               <div class="rps-emoji" id="rps-emoji" data-ic="palm"></div>
               <div class="rps-name" id="rps-name">손을 비춰주세요</div>
-              <div class="rps-hint" id="rps-hint">바위 <span class="ic-inline" data-ic="fist"></span> · 보 <span class="ic-inline" data-ic="palm"></span> · 가위 <span class="ic-inline" data-ic="victory"></span></div>
+              <div class="rps-hint" id="rps-hint">가위 <span class="ic-inline" data-ic="victory"></span> · 바위 <span class="ic-inline" data-ic="fist"></span> · 보 <span class="ic-inline" data-ic="palm"></span></div>
             </div>
             <div class="fingers" id="fingers"></div>
             <div class="donut-wrap">
@@ -95,31 +96,6 @@
           </div>
         </div>
 
-        <div class="theory-sec">
-          <div class="thead">
-            <h2>원리와 활용</h2><span>손을 ‘점·선’으로 보고 판정하는 법</span>
-          </div>
-          <div class="tgrid">
-            <div class="tcard">
-              <span class="tc-ic" data-ic="palm"></span>
-              <h3>손 관절 21점 추적</h3>
-              <p>AI가 손가락 끝·관절의 <b>위치 21곳</b>을 실시간으로 찾아요. 사진 전체가 아니라 ‘점 좌표’만 보므로 <b>배경·옷·조명에 강하고 가벼워요</b>.</p>
-            </div>
-            <div class="tcard">
-              <span class="tc-ic" data-ic="ruler"></span>
-              <h3>규칙 기반 판정</h3>
-              <p>손목에서 손끝까지 <b>얼마나 폈는지</b>로 펴짐/접힘을 판단해요. 펴진 손가락 <b>0=바위, 2=가위, 5=보</b> — 학습 없이도 바로 작동합니다.</p>
-            </div>
-            <div class="tcard">
-              <span class="tc-ic" data-ic="gamepad"></span>
-              <h3>어디에 쓰일까?</h3>
-              <p>수어 인식, 동작 게임, 화면을 손으로 넘기는 <b>제스처 제어</b>, VR/AR의 맨손 조작 등 사람-컴퓨터 상호작용에 쓰여요.</p>
-            </div>
-          </div>
-          <div class="tflow"><span class="tf-lab">처리 흐름</span><span class="tf">카메라</span><span
-              class="tarr">→</span><span class="tf">21점 추적</span><span class="tarr">→</span><span class="tf">펴진 손가락
-              세기</span><span class="tarr">→</span><span class="tf">가위·바위·보 판정</span></div>
-        </div>
       </section>
 
       <!-- 중급: 3단계 위저드 -->
@@ -149,6 +125,7 @@
             <div class="cam-ctrl">
               <button class="btn lg block" id="train-cam" style="width:100%">카메라 켜기</button>
             </div>
+            <div class="learn fill" style="margin-top:16px;"><b>좋은 데이터 모으는 법</b><br>· 손 각도(정면·기울임)와 카메라와의 거리를 바꿔가며 모아요.<br>· 제스처마다 <b>30개 이상</b>, 헷갈리는 건 더 많이.<br>· 손 관절 21개 위치만 쓰므로 <b>배경·옷·조명은 신경 쓰지 않아도</b> 됩니다.</div>
           </div>
 
           <!-- 단계별 패널 -->
@@ -162,8 +139,6 @@
                 <button class="add-cls" id="add-cls">+ 제스처 추가</button>
                 <div class="hint" id="train-hint">제스처 2종 이상 + 각 8개 이상 샘플이 필요합니다.</div>
                 <button class="btn primary block lg" id="go-train" disabled style="margin-top:14px">학습하기 →</button>
-                <div class="learn fill"><b>좋은 데이터 모으는 법</b><br>· 손 각도(정면·기울임)와 카메라와의 거리를 바꿔가며 모아요.<br>· 제스처마다 <b>30개
-                    이상</b>, 헷갈리는 건 더 많이.<br>· 손 관절 21개 위치만 쓰므로 <b>배경·옷·조명은 신경 쓰지 않아도</b> 됩니다.</div>
               </div>
             </div>
 
@@ -222,158 +197,119 @@
           </div>
         </div>
 
-        <div class="theory-sec">
-          <div class="thead">
-            <h2>원리와 활용</h2><span>내 제스처를 학습시키는 법</span>
-          </div>
-          <div class="tgrid">
-            <div class="tcard">
-              <span class="tc-ic" data-ic="package"></span>
-              <h3>데이터가 핵심</h3>
-              <p>같은 제스처도 <b>각도·거리를 바꿔 30개 이상</b> 모을수록 똑똑해져요. ‘데이터 양 = 정확도’ — AI 학습에서 가장 중요한 원칙이에요.</p>
-            </div>
-            <div class="tcard">
-              <span class="tc-ic" data-ic="brain"></span>
-              <h3>전이학습</h3>
-              <p>손 관절 <b>21개 좌표만</b> 입력으로 작은 분류기를 학습해요. 무거운 모델을 새로 만들지 않아 <b>브라우저에서 빠르게</b> 배웁니다.</p>
-            </div>
-            <div class="tcard">
-              <span class="tc-ic" data-ic="repeat"></span>
-              <h3>추론 & 개선</h3>
-              <p>학습한 AI가 새 손 모양을 <b>실시간 예측</b>(막대가 가장 높은 것이 답). 틀리면 ① 단계로 돌아가 데이터를 더 모아 개선해요.</p>
-            </div>
-          </div>
-          <div class="tflow"><span class="tf-lab">학습 흐름</span><span class="tf">데이터 수집</span><span
-              class="tarr">→</span><span class="tf">학습</span><span class="tarr">→</span><span class="tf">실시간
-              추론</span><span class="tarr">→</span><span class="tf">틀리면 보강</span></div>
-        </div>
       </section>
 
       <!-- 고급-응용: 내 제스처로 도구 만들기 -->
       <section id="panel-demo" hidden>
         <div class="flow" id="flow-demo">
-          <button class="fstep active" data-dw="1"><span class="fn">1</span><span class="ft"><b>기능 선택</b><span>매핑할 도구 고르기</span></span></button>
+          <button class="fstep active" data-dw="1"><span class="fn">1</span><span class="ft"><b>제스처 매핑</b><span>내 동작을 가위바위보에 잇기</span></span></button>
           <span class="farrow">→</span>
-          <button class="fstep" data-dw="2"><span class="fn">2</span><span class="ft"><b>임계값 조정</b><span>오작동 vs 미반응</span></span></button>
+          <button class="fstep" data-dw="2"><span class="fn">2</span><span class="ft"><b>임계값 튜닝·검증</b><span>슬라이더와 결과를 한 화면에서</span></span></button>
           <span class="farrow">→</span>
-          <button class="fstep" data-dw="3"><span class="fn">3</span><span class="ft"><b>혼동행렬 확인</b><span>헷갈리는 원인 분석</span></span></button>
-          <span class="farrow">→</span>
-          <button class="fstep" data-dw="4"><span class="fn">4</span><span class="ft"><b>최종 매핑</b><span>커스텀 데모 실행</span></span></button>
+          <button class="fstep" data-dw="3"><span class="fn">3</span><span class="ft"><b>가위바위보 대결</b><span>학습한 모델로 직접 승부</span></span></button>
         </div>
 
-        <div class="card" style="padding:40px 24px; min-height:460px;">
+        <div class="card" id="dm-main-card">
           
-          <!-- Step 1: 기능 선택 -->
+          <!-- 학습 전에는 들어올 수 없다 -->
+          <div class="ms-gate" id="dm-gate">
+            <span class="ms-gate-ic" data-ic="alert"></span>
+            <h2>먼저 제스처 분류기를 학습시켜 주세요</h2>
+            <p>이 코스는 <b>여러분이 직접 학습시킨 제스처 분류기</b>를 제어 인터페이스로 활용하는 단계입니다.<br>중급 · 제작 탭에서 학습을 마치면 자동으로 열립니다.</p>
+            <button class="btn primary lg" id="dm-to-train">중급 · 제작으로 가기</button>
+          </div>
+          
+          <!-- Step 1: 제스처 매핑 -->
           <div class="dstep" data-dw="1">
-            <h2>어떤 기능을 손동작으로 제어할까요?</h2>
-            <div class="dm-funcs">
-              <div class="dm-func-card" onclick="selectDemoFunc(this, 'ppt')">
-                <span class="dm-func-icon" data-ic="monitor"></span>
-                <span class="dm-func-name">PPT 슬라이드<br>제어</span>
-              </div>
-              <div class="dm-func-card active" onclick="selectDemoFunc(this, 'vol')">
-                <span class="dm-func-icon" data-ic="trending-up"></span>
-                <span class="dm-func-name">시스템 볼륨<br>조절</span>
-              </div>
-              <div class="dm-func-card" onclick="selectDemoFunc(this, 'zoom')">
-                <span class="dm-func-icon" data-ic="search"></span>
-                <span class="dm-func-name">화면 확대/축소</span>
-              </div>
-            </div>
-            <div style="text-align:center; margin-top:40px;">
-              <button class="btn primary lg" style="width:240px;" onclick="goToDmStep(2)">다음 단계로</button>
+            <h2>내 제스처를 가위바위보에 잇습니다</h2>
+            <p style="text-align:center; color:var(--ink-2); font-size:14px; margin-bottom:30px;">
+              중급에서 학습시킨 제스처를 순서대로 <b>가위 · 바위 · 보</b>에 연결합니다. 초급의 가위바위보는 <b>펴진 손가락 개수를 세는 규칙</b>이었지만, 여기서는 <b>여러분이 직접 학습시킨 모델</b>이 판정합니다.
+            </p>
+            <div class="dm-map" id="dm-map"></div>
+            <div class="btn-row lg">
+              <button class="btn primary lg block" style="max-width:240px;" onclick="goToDmStep(2)">다음 단계로</button>
             </div>
           </div>
 
-          <!-- Step 2: 임계값 조정 -->
+          <!-- Step 2: 커트라인 정하기 -->
+          <!-- 라이브 손 피드백은 3단계(대결)의 진짜 카메라가 맡는다 — 여기는 숫자만 본다. -->
           <div class="dstep" data-dw="2" hidden>
+            <!-- 좌=조작 · 우=결과. 중급(카메라|패널)·3단계(카메라|대결)와 같은 축이다. -->
             <div class="dm-thres-layout">
-              <div class="dm-cam-box">
-                <div class="dm-cam-hand" id="dm-cam-hand" data-ic="fist"></div>
-                <div class="dm-cam-bar-wrap">
-                  <div class="dm-cam-bar" id="dm-cam-bar"></div>
-                </div>
-                <div class="dm-cam-text" id="dm-cam-text">AI 확신도: 45% (애매함)</div>
-              </div>
-              <div class="dm-ctrl-box">
-                <h3>신뢰도 임계값 조절</h3>
-                <p>몇 % 이상 확신할 때만 기능을 실행할까요?<br>낮추면 오작동이 늘고, 높이면 반응이 둔해집니다.</p>
+              <div class="dm-thres-ctrl">
+                <h2 class="dm-thres-h">커트라인을 어디에 둘까요?</h2>
+                <p class="dm-thres-sub">AI가 몇 % 이상 확신할 때만 동작으로 인정할지 정합니다.</p>
+
                 <div class="dm-slider-card">
                   <input type="range" class="ui-slider" id="dm-slider" min="0" max="100" value="86">
                   <div class="dm-slider-val" id="dm-slider-val">86%</div>
-                  <div class="dm-alert-warn" id="dm-alert-warn">
-                    <span><span class="ic-inline" data-ic="alert"></span></span> 동작을 완벽하게 해야만 넘어갑니다 (미반응)
-                  </div>
                 </div>
-                <button class="btn primary lg block" style="width:100%; margin-top:24px;" onclick="goToDmStep(3)">테스트 완료, 상세 분석하기</button>
+
+              </div>
+
+              <!-- 표와 판정 모두 paintConfusion() 이 채운다 (클래스 2개든 4개든).
+                   [2. 중급] 학습 화면에서 본 그 표에 '미반응' 열이 하나 붙은 형태 —
+                   커트라인을 올릴수록 성공이 그 열로 옮겨 가는 것이 이 화면의 전부다. -->
+              <div class="dm-thres-res">
+                <p class="dm-cm-lead" id="dm-cm-lead"></p>
+                <table class="dm-cm-table" id="dm-cm-table"></table>
+                <p class="dm-cm-note" id="dm-cm-note"></p>
+              </div>
+
+              <!-- 완료는 결과 패널이 아니라 이 단계 전체의 행동이라 두 칸 아래 가운데에 둔다. -->
+              <button class="btn primary lg dm-thres-next" onclick="goToDmStep(3)">최종 매핑 완료하기</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: 가위바위보 대결 -->
+        <div class="dstep layout" data-dw="3" hidden>
+          <div class="left">
+            <div class="card camera-card">
+              <h2>데모 카메라 <span class="cam-state" id="demo-cam-state">대기</span></h2>
+              <div class="stage">
+                <video id="v-demo" playsinline muted></video>
+                <canvas id="c-demo"></canvas>
+                <div class="ph" id="ph-demo"><span class="ic-inline" data-ic="camera"></span> [데모 카메라 켜기]를 누르고<br>제스처를 취해보세요</div>
+              </div>
+              <div class="cam-ctrl" style="display:flex; gap:8px;">
+                <button class="btn primary lg block" id="btn-demo-cam" style="flex:1;">데모 카메라 켜기</button>
+                <button class="btn lg block" id="btn-demo-cam-off" style="flex:1; display:none; border:1px solid var(--line); background:#fff; color:var(--ink-2);">카메라 끄기</button>
               </div>
             </div>
           </div>
-
-          <!-- Step 3: 혼동행렬 확인 -->
-          <div class="dstep" data-dw="3" hidden>
-            <h2>혼동행렬(Confusion Matrix) 분석</h2>
-            <div class="dm-cm-wrap">
-              <p style="font-size:13.5px; color:var(--ink-2); margin:0 0 14px; line-height:1.6;">
-                앞 단계에서 정한 임계값 <b id="dm-cm-thres">86%</b>로 각 동작을 100번씩 시도한 결과입니다.
-                임계값을 바꾸면 아래 숫자도 함께 달라집니다.
-              </p>
-              <table class="dm-cm-table">
-                <thead>
-                  <tr>
-                    <th>실제 동작 \ AI 예측</th>
-                    <th><span class="ic-inline" data-ic="victory"></span> 가위</th>
-                    <th><span class="ic-inline" data-ic="palm"></span> 보</th>
-                    <th>미반응</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <th><span class="ic-inline" data-ic="victory"></span> 가위</th>
-                    <td class="succ" id="dm-cm-00">—</td>
-                    <td class="err" id="dm-cm-01">—</td>
-                    <td id="dm-cm-0n">—</td>
-                  </tr>
-                  <tr>
-                    <th><span class="ic-inline" data-ic="palm"></span> 보</th>
-                    <td class="err" id="dm-cm-10">—</td>
-                    <td class="succ" id="dm-cm-11">—</td>
-                    <td id="dm-cm-1n">—</td>
-                  </tr>
-                </tbody>
-              </table>
-              <p id="dm-cm-note" style="font-size:13px; color:var(--ink-2); margin:14px 0 0; line-height:1.6;"></p>
-
-              <!-- 정오답 판정은 advanced.js 가 붙인다(concept 개념 정리 퀴즈와 같은 규칙). -->
-              <div class="qz-card" id="dm-quiz">
-                <h3><span class="ic-inline" data-ic="help"></span> 분석 퀴즈</h3>
-                <p>AI가 유독 <b>가위와 보</b>를 헷갈리는 이유로 가장 타당한 것은?</p>
-                <button class="qz-btn" data-i="0">A. 가위와 보는 펴진 손가락 수가 같아 규칙으로 구분할 수 없어서</button>
-                <button class="qz-btn" data-i="1">B. 컴퓨터 사양이 낮아 좌표 계산이 밀려서</button>
-                <button class="qz-btn" data-i="2">C. 각도에 따라 접은 손가락이 편 손가락에 가려져 좌표가 잘못 잡혀서</button>
-                <button class="qz-btn" data-i="3">D. 보는 손가락이 많아 학습 데이터가 그만큼 더 필요해서</button>
-                <div class="qz-feedback" id="dm-quiz-feedback" hidden></div>
+          <div class="right">
+            <div class="card" style="display:flex; flex-direction:column; min-height:460px;">
+              <h2>가위바위보 대결</h2>
+              <div class="dm-success-box" style="margin:0 0 12px 0; flex:none;">
+                카메라를 켜고 <b>대결 시작</b>을 누르면 <b>3 · 2 · 1</b> 뒤에 낸 손을 판정합니다.
+                확신도가 커트라인 <b id="dm-res-thres">86%</b>에 못 미치면 무효입니다.
               </div>
-
-              <div style="text-align:center; margin-top:24px;">
-                <button class="btn primary lg" id="btn-dm-final" style="width:240px;" hidden onclick="goToDmStep(4)">최종 매핑 완료하기</button>
+              <div class="rps-score" id="rps-score"></div>
+              <div class="rps-arena">
+                <div class="rps-side">
+                  <div class="rps-side-t">나</div>
+                  <div class="rps-hand" id="rps-me"><span class="ic-inline" data-ic="hand-raised"></span></div>
+                  <div class="rps-side-n" id="rps-me-n">—</div>
+                </div>
+                <div class="rps-vs" id="rps-vs">VS</div>
+                <div class="rps-side">
+                  <div class="rps-side-t">AI</div>
+                  <div class="rps-hand" id="rps-ai"><span class="ic-inline" data-ic="hand-raised"></span></div>
+                  <div class="rps-side-n" id="rps-ai-n">—</div>
+                </div>
               </div>
+              <div class="rps-live" id="rps-live">
+                <div class="rps-live-bar-wrap">
+                  <div class="rps-live-bar" id="rps-live-bar"></div>
+                  <div class="rps-live-cut" id="rps-live-cut"></div>
+                </div>
+                <div class="rps-live-t" id="rps-live-t">손이 보이지 않습니다</div>
+              </div>
+              <div class="rps-result" id="rps-result"></div>
+              <button class="btn primary lg block" id="rps-go" disabled>대결 시작</button>
             </div>
           </div>
-
-          <!-- Step 4: 최종 매핑 -->
-          <div class="dstep" data-dw="4" hidden>
-            <div class="dm-success-wrap centered">
-              <div class="dm-success-icon">✓</div>
-              <h2 style="font-size:24px; margin:0;">매핑 완료! 데모가 준비되었습니다.</h2>
-              <div class="dm-success-box">
-                주먹(<span class="ic-inline" data-ic="fist"></span>)을 쥐면 <b id="dm-res-func">[다음 슬라이드]</b>가 실행되도록 연결되었습니다.<br>
-                최적 임계값 <b id="dm-res-thres">86%</b>가 적용되어 부드럽게 작동합니다.
-              </div>
-              <button class="btn primary lg" onclick="CourseDashboard.finish()">실습 완료, 최종 평가로 이동</button>
-            </div>
-          </div>
-
         </div>
       </section>
 
@@ -381,8 +317,10 @@
   </div>
 
   <script src="../shared/icons.js"></script>
+  <script src="/shared/access.js"></script>
   <script src="./app.js"></script>
   <script src="./advanced.js"></script>
+  <script src="../shared/course-preview.js"></script>
   <script src="../shared/course-dashboard.js"></script>
   <script src="./course-config.js"></script>
 </body>

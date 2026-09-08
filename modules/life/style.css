@@ -9,7 +9,7 @@
 
   .cintro p { margin:0 auto; max-width:780px; font-size:14px; color:var(--ink-2); line-height:1.6; }
   .step { flex:1; min-width:220px; text-align:left; background:#fff; border:1px solid var(--line); border-radius:var(--r); padding:13px 16px; transition:.15s; display:flex; gap:12px; align-items:center; box-shadow:var(--shadow-sm); }
-  .step.active { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-soft), var(--shadow); }
+  .step.active { border-color:var(--primary); box-shadow:var(--shadow); }
   .step .n { width:32px; height:32px; border-radius:9px; flex:none; display:grid; place-items:center; font-family:var(--mono); font-weight:700; font-size:14px; background:var(--bg-soft); border:1px solid var(--line); color:var(--ink-3); }
   .step.active .n { background:linear-gradient(150deg,var(--primary-2),var(--primary)); border-color:transparent; color:#fff; }
 
@@ -80,20 +80,16 @@
 
   .learn { background:var(--card-2); border:1px solid var(--line); border-radius:12px; padding:13px 15px; margin-top:14px; font-size:12.5px; color:var(--ink-2); line-height:1.65; }
 
-  /* 이론 보강 영역 (인터랙션 카드와 분리) */
-  .theory-sec { grid-column:1 / -1; margin-top:6px; }
-  .tcard:nth-child(2) .tc-ic { background:var(--primary-soft); }
-
   .layout[hidden] { display:none; }
   @media (max-width:880px){ .layout{ grid-template-columns:1fr; align-items:start; } }
 /* ---- 고급-응용 (인식 한계 테스트) 커스텀 CSS ---- */
 
 /* Step 1: 조건별 인식 실험 */
 .lm-tabs { display:flex; gap:16px; justify-content:center; margin-bottom:24px; }
-.lm-tab { background:#fff; border:2px solid var(--line); border-radius:12px; padding:20px 24px; text-align:center; cursor:pointer; transition:0.2s; min-width:140px; }
+.lm-tab { background:#fff; border:2px solid var(--line); border-radius:12px; padding:12px 24px; text-align:center; cursor:pointer; transition:0.2s; min-width:140px; }
 .lm-tab:hover { border-color:var(--primary-line); transform:translateY(-2px); box-shadow:var(--shadow-sm); }
 .lm-tab.active { border-color:var(--primary); background:#fff; box-shadow:0 0 0 3px var(--primary-soft), var(--shadow); }
-.lm-tab-icon { font-size:24px; color:var(--ink-4); display:block; margin-bottom:8px; }
+.lm-tab-icon { font-size:24px; color:var(--ink-4); display:block; margin-bottom:4px; }
 .lm-tab.active .lm-tab-icon { color:var(--primary); }
 .lm-tab-name { font-size:15px; font-weight:700; color:var(--ink-2); }
 .lm-tab.active .lm-tab-name { color:var(--ink); }
