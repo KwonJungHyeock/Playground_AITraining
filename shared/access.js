@@ -7,7 +7,8 @@
 
   var PLAN_KEY = 'eduino_plan';           // 'free' | 'paid'
   var ENT_KEY = 'eduino_entitlements';    // { <scope>: true } — 코스 단품 구매용
-  var CTA_HREF = '/platform/index.html#plans';
+  /* 메인의 요금 섹션이 사라져 앵커가 죽었다. 그 섹션에 있던 도입 문의 메일로 잇는다. */
+  var CTA_HREF = 'mailto:hello@eduino.kr?subject=Eduino%20AI%20%EB%8F%84%EC%9E%85%20%EB%AC%B8%EC%9D%98';
   var CTA_LABEL = '도입·구매 문의';
 
   /* ── 저장소 (읽기 실패해도 무료로 동작) ── */
