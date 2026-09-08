@@ -15,14 +15,19 @@
 
 - 헤더: 로고 + `AIoT 교육플랫폼` 캡슐만. **네비 메뉴 추가 금지**
 - 진입 루트는 **정확히 2개**. 그 외 버튼(무료 샘플 체험 등) 추가 금지
-  - 일반 모드 → `/modules/index.html` · 비전 콘솔 → `/entry.html`
-  - 두 버튼은 `.hero-routes`(2열 그리드) + `.btn-route`(`min-height:58px`)로 **높이·너비가 항상 같다.** 라벨 길이를 바꿔도 이 규칙을 깨지 말 것
+  - `일반 사용자모드` → `/modules/index.html` · `수업전용 콘솔모드` → `/entry.html`
+  - 두 버튼은 `.hero-routes`(2열 그리드) + `.btn-route`(`min-height:70px`)로 **높이·너비가 항상 같다.** 라벨 길이를 바꿔도 이 규칙을 깨지 말 것
+  - 버튼 안에 배지·이모지를 넣지 않는다 (BETA 칩 제거됨). 명칭만으로 구분
+- 히어로 좌측은 `pill → h1 → lead → 진입 버튼 → 이런 분께` 5줄이 전부다.
+  체크 배지 줄(`.trust`)은 삭제했으니 되살리지 말 것
+- `.hero-band` 높이는 `min-height: min(calc(100vh - 128px), 760px)`.
+  `min-height` 가 `max-height` 를 이기므로 둘로 쪼개면 1080p 이상에서 위아래가 텅 빈다
 - `#features`·`#modules`·`#plans`·`#paths`·`#teach`·`#faq` 앵커는 **없다.**
   다른 페이지에서 "코스 목록"은 `/modules/index.html`, "도입 문의"는 메일 링크로 잇는다
 - `platform/sample.html` 은 남겨 두되 메인에서 링크하지 않는다 (URL 유지)
 
 ## 일반모드 (`modules/`)
-"6개 코스 둘러보기" → `/modules/index.html`(사전진단) → 사이드바로 코스 이동.
+`일반 사용자모드` → `/modules/index.html`(사전진단) → 사이드바로 코스 이동.
 
 | 파일 | 역할 |
 | --- | --- |
