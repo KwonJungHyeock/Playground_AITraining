@@ -1,5 +1,31 @@
 const $ = (id) => document.getElementById(id);
-function setStatus(t, c) { const s = $('status'); s.textContent = t; s.className = 'status' + (c ? ' ' + c : ''); }
+function setStatus(t, c) {
+  const s = $('status');
+  if (s) { s.textContent = t; s.className = 'status' + (c ? ' ' + c : ''); }
+  document.querySelectorAll('.stage').forEach(stage => {
+    if (stage.offsetParent !== null) {
+      let loader = stage.querySelector('.stage-loader');
+      if (!loader) {
+        loader = document.createElement('div');
+        loader.className = 'stage-loader';
+        loader.style.cssText = 'position:absolute; inset:0; background:#0d1016; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; font-size:15px; font-weight:700; z-index:20;';
+        stage.appendChild(loader);
+      }
+      if (c === 'busy') {
+        loader.style.display = 'flex';
+        loader.innerHTML = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite; margin-bottom:12px; color:var(--primary);"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>` + t;
+        if (!document.getElementById('spin-anim')) {
+          const style = document.createElement('style');
+          style.id = 'spin-anim';
+          style.textContent = '@keyframes spin { 100% { transform: rotate(360deg); } }';
+          document.head.appendChild(style);
+        }
+      } else {
+        loader.style.display = 'none';
+      }
+    }
+  });
+}
 
 /* ── URL 판별/이스케이프 ── */
 function esc(s) { return s.replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m])); }
@@ -84,7 +110,7 @@ function doDetect() {
   let got = null;
   if (window.jsQR) { const c = jsQR(img.data, img.width, img.height, { inversionAttempts: 'attemptBoth' }); if (c && c.data) got = { text: c.data, fmt: 'QR code' }; }
   if (!got) { const b = zxDecode(sproc); if (b) got = b; }
-  if (got) pushCode(got.text, got.fmt);
+  if (got) { pushCode(got.text, got.fmt); window.CourseDashboard && CourseDashboard.markDone('scan'); }
 }
 async function scanLoop() {
   if (!scan.stream) return;
@@ -186,6 +212,7 @@ $('ocr-shot').onclick = async () => {
     const chars = text.replace(/\s/g, '').length;
     $('ocr-meta').innerHTML = `<span>신뢰도 <b>${conf}%</b></span><span>글자 수 <b>${chars}</b></span><span>언어 <b>${ocrLang}</b></span>` + (count ? `<span class="applied">자동 교정 ${count}건</span>` : '');
     setStatus('인식 완료 · READY', 'ready');
+    window.CourseDashboard && CourseDashboard.markDone('ocr');
   } catch (e) {
     $('ocr-out').value = '인식 중 오류가 발생했어요: ' + e.message;
     setStatus('오류', 'busy');
@@ -195,9 +222,8 @@ $('ocr-shot').onclick = async () => {
 };
 
 /* ── 교정으로 배우는 OCR ── */
+// 교정 사전은 메모리에만 둔다 — 저장하지 않으므로 새로고침하면 비워진다.
 let corrections = {}, lastShown = '';
-try { corrections = JSON.parse(localStorage.getItem('eduino-ocr-corrections') || '{}'); } catch (e) { corrections = {}; }
-function saveCorrections() { try { localStorage.setItem('eduino-ocr-corrections', JSON.stringify(corrections)); } catch (e) {} }
 function applyCorrections(text) {
   let count = 0;
   for (const w in corrections) {
@@ -244,15 +270,15 @@ $('ocr-learn').onclick = () => {
   const subs = tokenDiff(lastShown, cur);
   let added = 0;
   subs.forEach(([w, r]) => { if (w && r && w !== r) { corrections[w] = r; added++; } });
-  saveCorrections(); renderLearned(); lastShown = cur;
+  renderLearned(); lastShown = cur;
   $('ocr-learn').disabled = true;
   const h = $('ocr-learn-hint');
   h.className = 'learn-hint ok';
   h.textContent = added ? `✓ 교정 ${added}개를 배웠어요! 다음 인식부터 자동 적용돼요.` : '✓ 반영했어요 (새로 배운 치환은 없음)';
   setStatus(added ? '교정 ' + added + '개 학습됨 · READY' : 'READY', 'ready');
 };
-$('ocr-clearlearn').onclick = () => { corrections = {}; saveCorrections(); renderLearned(); };
-$('ocr-chips').addEventListener('click', (e) => { const w = e.target.dataset.del; if (w == null) return; delete corrections[w]; saveCorrections(); renderLearned(); });
+$('ocr-clearlearn').onclick = () => { corrections = {}; renderLearned(); };
+$('ocr-chips').addEventListener('click', (e) => { const w = e.target.dataset.del; if (w == null) return; delete corrections[w]; renderLearned(); });
 renderLearned();
 
 /* ── 단계 전환 ── */
@@ -276,3 +302,18 @@ document.querySelectorAll('.step').forEach(btn => {
 
 setStatus('대기 중');
 if (!window.isSecureContext) { const b = $('banner'); b.classList.add('on'); b.innerHTML = EduinoIcons.svg('alert') + ' 카메라는 <b>localhost</b> 또는 <b>https</b> 에서만 켜집니다. 배포된 https 주소로 접속해 주세요.'; }
+/* 실습 단계를 떠날 때 켜 둔 카메라를 끈다. 촬영 뒤에는 이미 꺼져 있어 사진·OCR 결과는 남는다. */
+(window.CoursePracticeLeave = window.CoursePracticeLeave || []).push(() => {
+  if (scan.stream) {
+    scan.stop();
+    $('scan-frame').style.display = 'none';
+    $('scan-cam').disabled = false; $('scan-stop').disabled = true;
+    $('scan-state').textContent = '대기'; $('scan-state').classList.remove('on');
+  }
+  if (ocr.stream) {
+    ocr.stop();
+    $('ocr-cam').disabled = false;
+    $('ocr-state').textContent = '대기'; $('ocr-state').classList.remove('on');
+  }
+  setStatus('대기 중');
+});

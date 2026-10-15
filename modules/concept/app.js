@@ -72,6 +72,7 @@ $('bd-train').onclick = async () => {
   $('bd-acc').textContent = Math.round(accT * 100) + '%';
   xs.dispose(); ys.dispose();
   bdTrained = true; bdTraining = false; renderBd();
+  window.CourseDashboard && CourseDashboard.markDone('boundary');
   const cxName = CXLABEL[$('bd-cx').value];
   $('bd-say').innerHTML = `✓ 완성! 복잡도 <b>${cxName}</b>로 경계를 그렸어요. 복잡도를 바꿔 다시 학습하면 경계 모양이 달라져요.`;
   setStatus('학습 완료 · READY', 'ready');
@@ -105,8 +106,12 @@ function renderCmp() {
     ? EduinoIcons.svg('target') + ' 정답(색)이 정해진 점들이에요'
     : EduinoIcons.svg('puzzle') + ' 정답을 무시하고 위치만 보고 다시 묶었어요 (★=무리 중심)';
 }
-$('cmp-sample').onclick = makeCmp;
-$('cmp-seg').addEventListener('click', (e) => { const m = e.target.dataset.m; if (!m) return; cmpMode = m; $('cmp-seg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.m === m)); if (m === 'unsup') runUnsup(); renderCmp(); setStatus(m === 'sup' ? '지도학습 보기' : '비지도학습 보기', 'ready'); });
+/* makeCmp() 는 로드 시점 초기화에도 쓰인다. 완료 신호를 그 안에 두면 화면을 열자마자
+   완료로 찍히므로, 사용자가 실제로 누른 자리에만 건다. */
+$('cmp-sample').onclick = () => { makeCmp(); window.CourseDashboard && CourseDashboard.markDone('compare'); };
+/* 이 탭의 핵심은 지도/비지도를 바꿔 보는 것이다 — 그 전환을 완료로 본다. */
+$('cmp-seg').addEventListener('click', (e) => { const m = e.target.dataset.m; if (!m) return;
+  window.CourseDashboard && CourseDashboard.markDone('compare'); cmpMode = m; $('cmp-seg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.m === m)); if (m === 'unsup') runUnsup(); renderCmp(); setStatus(m === 'sup' ? '지도학습 보기' : '비지도학습 보기', 'ready'); });
 
 /* ── 단계 전환 ── */
 document.querySelectorAll('.step').forEach(btn => {

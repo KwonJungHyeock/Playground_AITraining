@@ -52,6 +52,9 @@
       title: "화면 캡처",
       btn: "이미지 저장하기",
       tracks: ["image", "audio", "pose"],
+      /* 산출물을 0으로 만들면 성취감이 사라져 전환 동인이 약해진다 — 추론 결과 화면
+         원본 캡처만 무료로 연다 (기준서 2-1 정책 근거). */
+      free: true,
       grab: true,
     },
   ];
@@ -184,6 +187,9 @@
   .sb-i .t{flex:1;min-width:0;font-size:12.5px;font-weight:700;color:var(--ink);line-height:1.3;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   /* 결과물 생성 출처 표기 (종류 중복 구별용) */
+  /* 구분자는 CSS 로 넣는다 — <small> 의 글자는 출처 이름 그 자체여야 한다.
+     구분자를 마크업에 넣으면 출처를 읽어 가는 쪽(테스트·스크린리더)이 " · 가위바위보" 를 이름으로 본다. */
+  .sb-i .t small::before{content:" · ";}
   .sb-i .t small{font-size:10.5px;font-weight:600;color:var(--ink-4);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .sb-i .at{flex:none;font-size:10.5px;font-weight:600;color:var(--ink-4);}
@@ -571,6 +577,8 @@
         m.mode === "teach" || m.mode === "class" || bagUI ? "" : "none";
       const teach = m.mode === "teach";
       bb.title = teach ? "제출 게시판 (평가)" : "내 제출 현황";
+      /* 내 현황 대시보드는 관리 기능이라 잠근다 (기준서 2-1). */
+      if (window.Access) window.Access.setLocked(bb, "mission", !window.Access.isPaid());
       if (bb.lastChild && bb.lastChild.nodeType === 3)
         bb.lastChild.textContent = teach ? " 게시판" : " 내 현황";
     }
@@ -622,7 +630,7 @@
                     it,
                   ) => `<div class="sb-i" data-key="${esc(it.key)}" data-k="${esc(it.kind)}">
               <span class="i">${IC[it.kind] || IC.box}</span>
-              <span class="t">${esc(it.title)}${it.from ? `<small> &middot; ${esc(it.from)}</small>` : ""}</span>
+              <span class="t">${esc(it.title)}${it.from ? `<small>${esc(it.from)}</small>` : ""}</span>
               <span class="at">${ago(it.at)}</span>
               <button class="op" data-a="dl" data-key="${esc(it.key)}" title="이미지로 저장">${IC.down}</button>
               <button class="op" data-a="rm" data-key="${esc(it.key)}" title="미션함에서 삭제">${IC.x}</button>
@@ -644,6 +652,18 @@
               '<button class="sb-alt teach" data-a="create">＋ 클래스 미션 생성</button>'
             : ""
         }`;
+      /* 결과물 · 평가 · 관리 기능 잠금 (기준서 2-1).
+         3개 버튼 순서는 그대로 두고 이미지 저장하기만 활성으로 남긴다 (기준서 2-5). */
+      if (window.Access) {
+        const locked = !window.Access.isPaid();
+        area.querySelectorAll('[data-a="mk"]').forEach((b) => {
+          const def = KINDS.find((x) => x.k === b.dataset.k);
+          window.Access.setLocked(b, "output", locked && !(def && def.free));
+        });
+        window.Access.setLocked(area.querySelector(".sb-cap.bag"), "mission", locked);
+        window.Access.setLocked(area.querySelector('.sb-open[data-a="send"]'), "mission", locked);
+      }
+
       const note = area.querySelector(".sb-open-note");
       /* data-a 별 동작 (기본값 mk: 결과물 만들기) */
       const OPS = {

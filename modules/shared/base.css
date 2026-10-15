@@ -46,7 +46,9 @@ button { font-family:inherit; cursor:pointer; }
 main { max-width:1140px; margin:0 auto; padding:26px 22px 22px; }
 .cintro { text-align:center; padding:6px 0 16px; display:flex; flex-direction:column; align-items:center; }
 .cintro .eyebrow { display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.06em; color:var(--primary-ink); background:var(--primary-soft); border:1px solid var(--primary-line); border-radius:999px; padding:5px 12px; margin-bottom:12px; }
-.cintro h1 { margin:0 0 7px; font-size:26px; font-weight:800; letter-spacing:-.02em; }
+/* 대시보드 셸의 .dash-head h1 과 같은 값으로 맞춘다 — 한 화면 안에서 실습 퀘스트만
+   제목이 커 보이던 원인이었다(26 vs 24). 굵기·자간·아래 여백은 원래부터 같았다. */
+.cintro h1 { margin:0 0 7px; font-size:24px; font-weight:800; letter-spacing:-.02em; }
 .cintro p b { color:var(--primary-ink); }
 .steps { display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; }
 .step .t b { font-size:14.5px; font-weight:700; display:block; }
@@ -69,7 +71,11 @@ main { max-width:1140px; margin:0 auto; padding:26px 22px 22px; }
      .btn.quiet    투명      힌트·부가.
 
    .block(전폭)과 .lg(크게)도 강조 신호다. .primary 에만 곁들이고 남용하지 않는다.
-   전부 강조하면 아무것도 강조되지 않는다. */
+   전부 강조하면 아무것도 강조되지 않는다.
+
+   .btn-sm 은 반대쪽 — 카드 머리에 붙는 '태그형' 보조 버튼(힌트·용어 설명)이다.
+   흰 배경 + 얇은 테두리 알약 하나로 통일한다. 코스마다 다른 크기·투명도를 쓰면
+   같은 역할의 버튼이 화면마다 달라 보인다. */
 .btn:hover { border-color:var(--primary-line); color:var(--primary-ink); }
 .btn:disabled { opacity:.45; cursor:not-allowed; box-shadow:none; }
 .btn.primary { background:linear-gradient(150deg,var(--primary-2),var(--primary)); border-color:transparent; color:#fff; box-shadow:0 5px 16px rgba(240,71,58,.32); }
@@ -81,43 +87,24 @@ main { max-width:1140px; margin:0 auto; padding:26px 22px 22px; }
 .btn.block { width:100%; }
 /* 지금까지 gesture·life 에만 있어 나머지 3개 코스에서는 아무 효과가 없던 크기 수식자. */
 .btn.lg { padding:13px 20px; font-size:15px; }
+/* 카드 머리의 태그형 힌트 버튼 — 예전에는 data/style.css 안에만 있었다.
+   .btn 이 아니라 .btn.btn-sm 으로 적는다: 코스별 style.css 가 base.css 뒤에 실리면서
+   같은 특이성의 .btn 으로 크기를 다시 정하기 때문에, 한 단계 높여야 수식자가 살아남는다. */
+.btn.btn-sm { padding:6px 10px; font-size:12px; }
 /* 버튼 하나를 가운데 두는 래퍼. .btn 이 inline-flex 라 margin:auto 로는 가운데로 오지 않는다. */
 .btn-row { display:flex; justify-content:center; margin-top:16px; }
 .learn b { color:var(--primary-ink); }
 .fill { flex:1 1 auto; }
-.thead { display:flex; align-items:baseline; gap:10px; margin:0 0 14px; flex-wrap:wrap; }
-.thead h2 { margin:0; font-size:18px; font-weight:800; letter-spacing:-.02em; }
-.thead h2::before { content:''; display:inline-block; width:4px; height:16px; border-radius:2px; background:linear-gradient(180deg,var(--primary-2),var(--primary)); margin-right:9px; vertical-align:-2px; }
-.thead span { font-size:12.5px; color:var(--ink-3); font-weight:600; }
-.tgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
-.tcard { background:#fff; border:1px solid var(--line); border-radius:14px; padding:16px; box-shadow:var(--shadow-sm); transition:.16s; }
-.tcard:hover { box-shadow:var(--shadow); transform:translateY(-2px); border-color:var(--primary-line); }
-.tcard .tc-ic { width:38px; height:38px; border-radius:11px; display:grid; place-items:center; font-size:19px; margin-bottom:10px; background:var(--primary-soft); }
-.tcard:nth-child(1) .tc-ic { background:var(--green-soft); }
-.tcard:nth-child(3) .tc-ic { background:var(--amber-soft); }
 
 /* ── 인라인 SVG 아이콘 (shared/icons.js) ──────────────────────────────
    이모지 자리를 대신한다. 크기는 1em 이라 컨테이너가 쓰던 font-size 를 그대로 승계하고,
    색은 currentColor 라 컨테이너 색을 따른다 — 그래서 이모지와 달리 테마 색이 적용된다. */
 .eic { width:1em; height:1em; flex:none; display:block; }
 .ic-inline { display:inline-grid; place-items:center; vertical-align:-.16em; color:var(--ink-3); }
-/* 이론 카드 — soft 배경과 같은 계열 색을 얹어 듀오톤으로 읽히게 한다. */
-.tcard .tc-ic { color:var(--primary-ink); }
-.tcard:nth-child(1) .tc-ic { color:var(--green); }
-.tcard:nth-child(2) .tc-ic { color:var(--blue); }
-.tcard:nth-child(3) .tc-ic { color:var(--amber); }
 .step .n { color:var(--ink-3); }
 .step.active .n { color:var(--primary-ink); }
 .say .ic { color:var(--primary-ink); }
 .tip .ic-inline { color:var(--ink-4); }
-.tcard h3 { margin:0 0 6px; font-size:14.5px; font-weight:800; }
-.tcard p { margin:0; font-size:13px; color:var(--ink-2); line-height:1.6; }
-.tcard p b { color:var(--primary-ink); }
-.tflow { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:12px; background:var(--card-2); border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
-.tflow .tf-lab { font-size:11.5px; font-family:var(--mono); font-weight:700; color:var(--ink-3); margin-right:2px; }
-.tflow .tf { font-size:12.5px; font-weight:700; color:var(--ink-2); background:#fff; border:1px solid var(--line-2); border-radius:8px; padding:6px 11px; }
-.tflow .tarr { color:var(--ink-4); font-weight:700; }
-@media (max-width:760px){ .tgrid { grid-template-columns:1fr; } }
 .flow { display:flex; align-items:center; background:#fff; border:1px solid var(--line); border-radius:var(--r); padding:7px; box-shadow:var(--shadow-sm); margin-bottom:18px; }
 .flow .fstep:hover { background:var(--card-2); }
 .flow .fstep.active { background:var(--primary-soft); }

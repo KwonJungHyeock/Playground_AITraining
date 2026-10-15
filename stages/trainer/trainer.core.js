@@ -5,8 +5,6 @@
 
 const PALETTE = ['#0066ff', '#d97706', '#06b6d4', '#059669', '#e11d48', '#7c3aed', '#db2777', '#0891b2'];
 const MAX_CLASSES = 4;
-/* 클래스당 촬영 상한 — 롱프레스(120ms 간격)로 수백 장이 쌓여 브라우저가 느려지는 것을 방지 */
-const MAX_SAMPLES = 100;
 
 const state = {
   classes: [],
@@ -34,70 +32,25 @@ const els = {
   inferToggle: $('infer-toggle'), inferMeta: $('infer-meta'),
 };
 
-/* 상태 표시 — 구 뱃지(#status)와 콘솔 HUD 칩(#vStatus) 양쪽에 반영.
-   HUD 칩은 하드코딩 'READY' 였으므로 실제 상태(로딩·학습·실패)를 보여주도록 연결한다. */
-const STATUS_LABEL = {
-  busy: '● 준비 중…', ready: '● 준비 완료', training: '● 학습 중…', fail: '● 오류',
-};
 function setStatus(text, kind) {
-  const chip = $('vStatus');
-  if (chip) {
-    chip.textContent = STATUS_LABEL[kind] || ('● ' + (text || ''));
-    chip.dataset.state = kind || '';
-  }
-  if (!els.status) return; // 구 뱃지는 없을 수 있음
+  if (!els.status) return; // 상단 상태 뱃지는 제거됨 (각 패널이 자체 STATUS 표시)
   els.statusText.textContent = text;
   els.status.className = 'status ' + (kind || '');
 }
 
-/* 모델 준비 안내 배너 (학생에게 로딩/실패를 명확히 알림) */
-function setModelNotice(state, msg) {
-  let el = $('model-notice');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'model-notice';
-    const host = $('lab-scenarios') || $('step-nav');
-    if (host && host.parentNode) host.parentNode.insertBefore(el, host);
-    else document.querySelector('.content')?.prepend(el);
-  }
-  if (!state) { el.style.display = 'none'; return; }
-  el.style.display = '';
-  el.className = 'model-notice ' + state;
-  el.innerHTML = state === 'loading'
-    ? '<span class="mn-spin"></span> AI 모델을 준비하고 있어요 <b>(약 13MB)</b> — 잠시만 기다려 주세요. 준비가 끝나면 촬영할 수 있어요.'
-    : '⚠️ <b>AI 모델을 불러오지 못했어요.</b> ' + (msg || '네트워크 연결을 확인해 주세요.') +
-      ' <button type="button" id="model-retry" class="mn-btn">다시 시도</button>';
-}
-
 
 /* ── 모델 로드 ───────────────────────────────────────── */
-async function loadModel() {
-  setStatus('MODEL LOADING', 'busy');
-  setModelNotice('loading');
+async function init() {
   try {
-    /* 느린/막힌 네트워크에서 무한 대기하지 않도록 타임아웃(45초)을 건다 */
-    state.mobilenet = await Promise.race([
-      mobilenet.load({ version: 2, alpha: 1.0, modelUrl: 'https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json' }),
-      new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 45000)),
-    ]);
+    setStatus('MODEL LOADING', 'busy');
+    state.mobilenet = await mobilenet.load({ version: 2, alpha: 1.0, modelUrl: 'https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json' });
     setStatus('READY', 'ready');
-    setModelNotice(null);
   } catch (e) {
     console.error(e);
-    state.mobilenet = null;
-    setStatus('LOAD FAILED', 'fail');
-    setModelNotice('fail');
-    const btn = $('model-retry');
-    if (btn) btn.onclick = () => loadModel();
+    setStatus('LOAD FAILED — CHECK NETWORK', '');
   }
-  renderClasses(); refresh();   // 모델 상태에 따라 촬영 버튼 활성/비활성 재적용
-}
-
-async function init() {
-  /* 클래스를 먼저 그린다 — 13MB 모델을 기다리는 동안 화면이 비어 보이지 않도록 */
   addClass('클래스 1');
   addClass('클래스 2');
-  await loadModel();
 }
 
 /* ── 클래스 관리 ─────────────────────────────────────── */
@@ -140,9 +93,7 @@ function renderClassList(cfg) {
     const input = document.createElement('input');
     input.className = 'class-name'; input.value = c.name;
     input.onclick = (e) => { e.stopPropagation(); cfg.onSelect(c.id); };
-    input.oninput = () => { if (input.value.trim()) { c.name = input.value; cfg.onRename(); } };
-    /* 빈칸으로 두고 나가면 화면과 실제 이름이 어긋나므로 이전 이름을 되돌려 표시 */
-    input.onblur = () => { if (!input.value.trim()) { input.value = c.name; cfg.onRename(); } };
+    input.oninput = () => { c.name = input.value || c.name; cfg.onRename(); };
     row.appendChild(input);
 
     const count = document.createElement('span');
@@ -188,6 +139,11 @@ function renderClassList(cfg) {
   });
   cfg.countMeta.textContent = cfg.classes.length + ' / ' + cfg.max;
   cfg.addBtn.disabled = cfg.classes.length >= cfg.max;
+  /* 무료 구간의 클래스 수·데이터 상한을 덮어씌운다 (기준서 2장). 세 트랙이 같은 함수를 부른다. */
+  if (window.Access) window.Access.capClasses({
+    container: cfg.container, addBtn: cfg.addBtn, countMeta: cfg.countMeta,
+    count: cfg.classes.length, max: cfg.max, kind: cfg.kind || 'shots'
+  });
 }
 
 function renderClasses() {
@@ -197,7 +153,7 @@ function renderClasses() {
     onSelect: selectClass, onRemove: removeClass,
     onRename: () => { renderBars(); updateCapTarget(); },
     onThumbs: openGallery,
-    capture: true, capEnabled: () => !!state.stream && !!state.mobilenet,
+    capture: true, capEnabled: () => !!state.stream,
   });
   updateCapTarget();
 }
@@ -232,29 +188,11 @@ async function toggleCam() {
   }
 }
 
-/* 촬영 상한 도달 안내 (같은 메시지가 연달아 뜨지 않도록 쓰로틀) */
-let limitToastAt = 0;
-function notifySampleLimit(sel) {
-  const now = Date.now();
-  if (now - limitToastAt < 2500) return;
-  limitToastAt = now;
-  let el = $('sample-limit-toast');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'sample-limit-toast';
-    el.className = 'sample-toast';
-    document.body.appendChild(el);
-  }
-  el.textContent = `'${sel.name}' 사진이 ${MAX_SAMPLES}장을 넘었어요. 충분해요! 다른 클래스도 찍어보세요.`;
-  el.classList.add('on');
-  clearTimeout(el._t);
-  el._t = setTimeout(() => el.classList.remove('on'), 2200);
-}
-
 function captureSample() {
   const sel = state.classes.find(c => c.id === state.selectedId);
   if (!sel || !state.mobilenet || !state.stream) return;
-  if (sel.embeddings.length >= MAX_SAMPLES) { notifySampleLimit(sel); return; }
+  /* 버튼은 비활성이지만 길게 누르기는 컨테이너 위임이라 여기서 한 번 더 막는다. */
+  if (window.Access && sel.embeddings.length >= window.Access.limit('shots')) return;
   const emb = tf.tidy(() => state.mobilenet.infer(els.video, true).flatten());
   sel.embeddings.push(Array.from(emb.dataSync()));
   emb.dispose();
@@ -287,9 +225,7 @@ function bumpClassCard(c) {
 }
 
 function setCapEnabled(on) {
-  /* 카메라가 켜져 있어도 AI 모델이 준비되지 않았으면 촬영 불가(무반응 방지) */
-  const usable = on && !!state.mobilenet;
-  els.classList.querySelectorAll('.cap-btn').forEach(b => b.disabled = !usable);
+  els.classList.querySelectorAll('.cap-btn').forEach(b => b.disabled = !on);
 }
 
 /* ── 학습 ───────────────────────────────────────────── */
@@ -357,7 +293,7 @@ async function train() {
       chartBox: $('train-chart-box'), confBox: $('confusion-box'), trainHint: els.trainHint,
     },
     hiddenUnits: 100, defaultEpochs: 30,
-    onStart: () => { setStatus('TRAINING', 'training'); stopInfer(); },
+    onStart: () => { setStatus('TRAINING', 'busy'); stopInfer(); },
     disposeHead: () => { if (state.head) state.head.dispose(); },
     setHead: (h) => { state.head = h; },
     resetChart, pushPoint: pushChartPoint, buildConf: buildConfusionMatrix,
