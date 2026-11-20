@@ -7,7 +7,9 @@
 | --- | --- |
 | `ai-train-infer.png` / `@2x` | **AI 학습·추론 — 확정안.** 사진을 모아 가르치는 장면 |
 | `alt-sorting.png` | 대안 — 두 무리로 분류하는 장면 |
-| `*-source-1024.png` | 글자 얹기 전 3D 렌더 원본 |
+| `vision-driving.png` / `@2x` | **AI 영상처리 주행.** 제품컷을 트랙 위에 합성 |
+| `*-source-1024.png` · `*-track-1024.png` | 글자 얹기 전 렌더 원본 |
+| `vision-driving-car-cutout.png` | 흰 배경을 따낸 제품컷 (투명 PNG) |
 
 ## 규칙
 
@@ -19,3 +21,10 @@
 - "AI" 글자는 넣지 않는다. 코스 6개 중 5개 제목에 이미 들어 있어 구분에 보탬이 안 된다
 
 제작 도구와 좌표 규칙은 `tools/thumbnail/README.md`.
+
+## 제품 사진을 쓸 때
+
+제품컷이 흰 배경이면 그대로 쓰지 않는다 — 틴트를 씌워도 "무엇을 하는 물건"인지가
+안 보인다. `tools/thumbnail/cutout-white-bg.js` 로 배경을 따낸 뒤, 장면(트랙·책상 등)
+위에 올리고 **따낼 때 같이 사라진 접지 그림자를 다시 깐다.**
+합성 예: `tools/thumbnail/build-vision-driving.js`
