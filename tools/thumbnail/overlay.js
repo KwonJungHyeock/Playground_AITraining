@@ -9,7 +9,7 @@ const CONFIG = {
     eyebrow: { amber: 'VISION AI', rest: ' · 이미지 분류' },
     title: ['내 사진으로 배우는', 'AI 분류기'],
     callouts: [
-      { n: '1', text: '내가 모은 사진', px: 20, py: 36, tx: 196, ty: 116 },
+      { n: '1', text: '내가 모은 사진', px: 290, py: 34, tx: 252, ty: 112 },
       { n: '2', text: 'AI가 알아봐요', px: 262, py: 176, tx: 243, ty: 246 },
     ],
   },
